@@ -1,13 +1,13 @@
 CREATE TABLE "group_members" (
-	"group_id" uuid NOT NULL,
-	"user_id" uuid NOT NULL,
+	"group_id" integer NOT NULL,
+	"user_id" integer NOT NULL,
 	"is_manager" boolean DEFAULT false NOT NULL,
 	"joined_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "group_members_group_id_user_id_pk" PRIMARY KEY("group_id","user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "groups" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "groups_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"title" text NOT NULL,
 	"description" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -15,25 +15,25 @@ CREATE TABLE "groups" (
 );
 --> statement-breakpoint
 CREATE TABLE "match_comments" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"match_id" uuid NOT NULL,
-	"user_id" uuid NOT NULL,
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "match_comments_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"match_id" integer NOT NULL,
+	"user_id" integer NOT NULL,
 	"text" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "match_joins" (
-	"match_id" uuid NOT NULL,
-	"user_id" uuid NOT NULL,
+	"match_id" integer NOT NULL,
+	"user_id" integer NOT NULL,
 	"extra_slots" integer DEFAULT 0 NOT NULL,
 	"joined_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "match_joins_match_id_user_id_pk" PRIMARY KEY("match_id","user_id")
 );
 --> statement-breakpoint
 CREATE TABLE "matches" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"group_id" uuid NOT NULL,
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "matches_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
+	"group_id" integer NOT NULL,
 	"starts_at" timestamp with time zone NOT NULL,
 	"location" text NOT NULL,
 	"capacity" integer DEFAULT 12 NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE "matches" (
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "users_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 2147483647 START WITH 1 CACHE 1),
 	"email" text NOT NULL,
 	"password_hash" text NOT NULL,
 	"name" text NOT NULL,

@@ -6,11 +6,10 @@ import {
   primaryKey,
   text,
   timestamp,
-  uuid,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
@@ -20,7 +19,7 @@ export const users = pgTable("users", {
 });
 
 export const groups = pgTable("groups", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
   title: text("title").notNull(),
   description: text("description"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -30,10 +29,10 @@ export const groups = pgTable("groups", {
 export const groupMembers = pgTable(
   "group_members",
   {
-    groupId: uuid("group_id")
+    groupId: integer("group_id")
       .notNull()
       .references(() => groups.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
+    userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     isManager: boolean("is_manager").notNull().default(false),
@@ -45,8 +44,8 @@ export const groupMembers = pgTable(
 );
 
 export const matches = pgTable("matches", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  groupId: uuid("group_id")
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  groupId: integer("group_id")
     .notNull()
     .references(() => groups.id, { onDelete: "cascade" }),
   startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
@@ -60,10 +59,10 @@ export const matches = pgTable("matches", {
 export const matchJoins = pgTable(
   "match_joins",
   {
-    matchId: uuid("match_id")
+    matchId: integer("match_id")
       .notNull()
       .references(() => matches.id, { onDelete: "cascade" }),
-    userId: uuid("user_id")
+    userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     extraSlots: integer("extra_slots").notNull().default(0),
@@ -75,11 +74,11 @@ export const matchJoins = pgTable(
 );
 
 export const matchComments = pgTable("match_comments", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  matchId: uuid("match_id")
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  matchId: integer("match_id")
     .notNull()
     .references(() => matches.id, { onDelete: "cascade" }),
-  userId: uuid("user_id")
+  userId: integer("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   text: text("text").notNull(),
