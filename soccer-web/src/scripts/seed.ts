@@ -38,16 +38,16 @@ async function main() {
       `INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
       [email, passwordHash, name]
     );
-    const uid = Array.isArray(res) ? res[0].id : res.rows[0].id;
+    const uid = Array.isArray(res) ? res[0].id : (res as any).rows[0].id;
     usersMap.set(email, uid);
   }
 
   const ensureGroup = async (title: string, description: string) => {
     const sel = await sql.query(`SELECT id FROM groups WHERE title = $1 LIMIT 1`, [title]);
-    const selId = Array.isArray(sel) ? (sel[0] && sel[0].id) : sel.rows[0]?.id;
+    const selId = Array.isArray(sel) ? (sel[0] && sel[0].id) : (sel as any).rows[0]?.id;
     if (selId) return selId;
     const ins = await sql.query(`INSERT INTO groups (title, description) VALUES ($1, $2) RETURNING id`, [title, description]);
-    return Array.isArray(ins) ? ins[0].id : ins.rows[0].id;
+    return Array.isArray(ins) ? ins[0].id : (ins as any).rows[0].id;
   };
 
   const sofiaId = await ensureGroup("Sofia Derby", "Local Sofia derby players");
@@ -86,9 +86,9 @@ async function main() {
   const m2 = await sql.query(`INSERT INTO matches (group_id, starts_at, location, capacity) VALUES ($1, $2, $3, $4) RETURNING id`, [sofiaId, addDays(now, 5).toISOString(), "Students Town", 12]);
   const m3 = await sql.query(`INSERT INTO matches (group_id, starts_at, location, capacity) VALUES ($1, $2, $3, $4) RETURNING id`, [sundayId, addDays(now, 6).toISOString(), "Arena 111", 10]);
 
-  const mid1 = Array.isArray(m1) ? m1[0].id : m1.rows[0].id;
-  const mid2 = Array.isArray(m2) ? m2[0].id : m2.rows[0].id;
-  const mid3 = Array.isArray(m3) ? m3[0].id : m3.rows[0].id;
+  const mid1 = Array.isArray(m1) ? m1[0].id : (m1 as any).rows[0].id;
+  const mid2 = Array.isArray(m2) ? m2[0].id : (m2 as any).rows[0].id;
+  const mid3 = Array.isArray(m3) ? m3[0].id : (m3 as any).rows[0].id;
 
   const matches = [mid1, mid2, mid3];
 
