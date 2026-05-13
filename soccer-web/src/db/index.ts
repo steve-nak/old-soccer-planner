@@ -1,4 +1,3 @@
-import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 
 import * as schema from "./schema";
@@ -9,7 +8,5 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is required to initialize the database client.");
 }
 
-const sql = neon(databaseUrl);
-
-export const db = drizzle(sql as any, { schema });
+export const db = drizzle(databaseUrl, { schema });
 export * from "./schema";
