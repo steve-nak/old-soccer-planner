@@ -1,6 +1,7 @@
 import { MatchWithDetails } from "@/services/match-service";
 import { formatDistanceToNow, format } from "date-fns";
-import { MapPin, Calendar, Users, AlertCircle } from "lucide-react";
+import { AlertCircle, Calendar, MapPin, ShieldAlert, Users } from "lucide-react";
+import { getMatchCapacityState, getMatchTimingState } from "@/lib/match-status";
 
 export interface MatchInfoProps {
   match: MatchWithDetails;
@@ -9,15 +10,27 @@ export interface MatchInfoProps {
 export function MatchInfo({ match }: MatchInfoProps) {
   const totalPlayers = match.joins.reduce((acc, join) => acc + 1 + join.extraSlots, 0);
   const availableSlots = match.capacity - totalPlayers;
+  const timingState = getMatchTimingState(new Date(match.startsAt));
+  const capacityState = getMatchCapacityState(totalPlayers, match.capacity);
 
   return (
     <div className="space-y-8">
-      {match.isCanceled && (
-        <div className="flex gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-          <AlertCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
-          <p className="text-sm font-medium text-red-800">This match has been canceled</p>
-        </div>
-      )}
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">
+          <ShieldAlert className="h-3.5 w-3.5" />
+          {timingState}
+        </span>
+        {match.isCanceled && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rose-700">
+            <AlertCircle className="h-3.5 w-3.5" />
+            canceled
+          </span>
+        )}
+        <span className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700">
+          <Users className="h-3.5 w-3.5" />
+          {capacityState}
+        </span>
+      </div>
 
       {/* Match Basic Info */}
       <div className="space-y-6">

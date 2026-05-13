@@ -9,7 +9,9 @@ export interface MatchActionsProps {
   isJoined: boolean;
   userExtraSlots?: number;
   isMember: boolean;
-  isLoading?: boolean;
+  isActive: boolean;
+  matchState: "upcoming" | "current" | "past";
+  isCanceled: boolean;
 }
 
 export function MatchActions({
@@ -17,6 +19,9 @@ export function MatchActions({
   isJoined,
   userExtraSlots = 0,
   isMember,
+  isActive,
+  matchState,
+  isCanceled,
 }: MatchActionsProps) {
   const [loading, setLoading] = useState(false);
   const [extraSlots, setExtraSlots] = useState(userExtraSlots);
@@ -69,6 +74,17 @@ export function MatchActions({
       <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
         <p className="text-center text-sm text-amber-800">
           You must be a member of the group to join matches
+        </p>
+      </div>
+    );
+  }
+
+  if (!isActive) {
+    return (
+      <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div className="text-sm font-semibold text-slate-900">Match actions</div>
+        <p className="text-sm leading-6 text-slate-600">
+          This match is {isCanceled ? "canceled" : `marked as ${matchState}`}, so joining and leaving are disabled.
         </p>
       </div>
     );

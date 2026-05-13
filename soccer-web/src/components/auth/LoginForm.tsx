@@ -6,7 +6,11 @@ import { useActionState } from "react";
 import { loginAction } from "@/app/actions/auth";
 import { authInitialState } from "@/components/auth/auth-state";
 
-export default function LoginForm() {
+type LoginFormProps = {
+  redirectTo?: string;
+};
+
+export default function LoginForm({ redirectTo }: LoginFormProps) {
   const [state, formAction, isPending] = useActionState(
     loginAction,
     authInitialState,
@@ -33,6 +37,7 @@ export default function LoginForm() {
       ) : null}
 
       <form action={formAction} className="space-y-5">
+        {redirectTo ? <input type="hidden" name="redirectTo" value={redirectTo} /> : null}
         <div className="space-y-2">
           <label htmlFor="email" className="text-sm font-medium text-slate-700">
             Email

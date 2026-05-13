@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME, verifyJwt } from "@/lib/auth";
 
 const publicRoutes = ["/", "/login", "/register"];
+const dashboardRoute = "/dashboard";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,7 +24,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (pathname === "/login" || pathname === "/register") {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL(dashboardRoute, request.url));
     }
 
     return NextResponse.next();

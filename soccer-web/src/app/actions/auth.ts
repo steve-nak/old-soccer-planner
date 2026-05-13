@@ -11,9 +11,9 @@ export type AuthFormState = {
 };
 
 function getRedirectTarget(formData: FormData) {
-  const nextPath = String(formData.get("redirectTo") ?? "/").trim();
+  const nextPath = String(formData.get("redirectTo") ?? "/dashboard").trim();
 
-  return nextPath.startsWith("/") ? nextPath : "/";
+  return nextPath.startsWith("/") ? nextPath : "/dashboard";
 }
 
 export async function loginAction(

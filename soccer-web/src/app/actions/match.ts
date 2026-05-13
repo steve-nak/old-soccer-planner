@@ -9,6 +9,7 @@ import {
   leaveMatch,
   updateExtraSlots,
 } from "@/services/match-service";
+import { isMatchActive } from "@/lib/match-status";
 import { revalidatePath } from "next/cache";
 
 export type MatchActionState = {
@@ -29,6 +30,10 @@ export async function joinMatchAction(matchId: number): Promise<MatchActionState
       return { error: "Match not found" };
     }
 
+    if (!isMatchActive(match)) {
+      return { error: "This match is no longer active" };
+    }
+
     const isGroupMember = await isUserGroupMember(currentUser.id, match.groupId);
 
     if (!isGroupMember) {
@@ -47,7 +52,7 @@ export async function joinMatchAction(matchId: number): Promise<MatchActionState
       return { error: "Failed to join the match" };
     }
 
-    revalidatePath(`/matches/${matchId}`);
+    revalidatePath(`/match/${matchId}`);
     return { error: null };
   } catch (error) {
     console.error("[match-actions] joinMatchAction failed", error);
@@ -63,13 +68,23 @@ export async function leaveMatchAction(matchId: number): Promise<MatchActionStat
       return { error: "You must be logged in to leave a match" };
     }
 
+    const match = await getMatchById(matchId);
+
+    if (!match) {
+      return { error: "Match not found" };
+    }
+
+    if (!isMatchActive(match)) {
+      return { error: "This match is no longer active" };
+    }
+
     const success = await leaveMatch(currentUser.id, matchId);
 
     if (!success) {
       return { error: "Failed to leave the match" };
     }
 
-    revalidatePath(`/matches/${matchId}`);
+    revalidatePath(`/match/${matchId}`);
     return { error: null };
   } catch (error) {
     console.error("[match-actions] leaveMatchAction failed", error);
@@ -88,13 +103,23 @@ export async function updateExtraSlotsAction(
       return { error: "You must be logged in to update slots" };
     }
 
+    const match = await getMatchById(matchId);
+
+    if (!match) {
+      return { error: "Match not found" };
+    }
+
+    if (!isMatchActive(match)) {
+      return { error: "This match is no longer active" };
+    }
+
     const success = await updateExtraSlots(currentUser.id, matchId, extraSlots);
 
     if (!success) {
       return { error: "Failed to update slots" };
     }
 
-    revalidatePath(`/matches/${matchId}`);
+    revalidatePath(`/match/${matchId}`);
     return { error: null };
   } catch (error) {
     console.error("[match-actions] updateExtraSlotsAction failed", error);

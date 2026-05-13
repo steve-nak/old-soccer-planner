@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db, matches, matchJoins, groups, groupMembers, users, matchComments } from "@/db";
 
 export type MatchDetail = {
@@ -39,6 +39,17 @@ export type MatchWithDetails = MatchDetail & {
       email: string;
       photoUrl: string | null;
     };
+  }>;
+};
+
+export type DashboardMatch = MatchDetail & {
+  group: {
+    id: number;
+    title: string;
+    description: string | null;
+  };
+  joins: Array<{
+    extraSlots: number;
   }>;
 };
 
@@ -114,6 +125,46 @@ export async function getMatchById(matchId: number): Promise<MatchWithDetails | 
   } catch (error) {
     console.error("[match-service] getMatchById failed", error);
     return null;
+  }
+}
+
+export async function getUserDashboardMatches(userId: number): Promise<DashboardMatch[]> {
+  try {
+    const memberships = await db
+      .select({
+        groupId: groupMembers.groupId,
+      })
+      .from(groupMembers)
+      .where(eq(groupMembers.userId, userId));
+
+    const groupIds = memberships.map((membership) => membership.groupId);
+
+    if (groupIds.length === 0) {
+      return [];
+    }
+
+    const dashboardMatches = await db.query.matches.findMany({
+      where: inArray(matches.groupId, groupIds),
+      with: {
+        group: {
+          columns: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+        joins: {
+          columns: {
+            extraSlots: true,
+          },
+        },
+      },
+    });
+
+    return dashboardMatches.sort((left, right) => right.startsAt.getTime() - left.startsAt.getTime());
+  } catch (error) {
+    console.error("[match-service] getUserDashboardMatches failed", error);
+    return [];
   }
 }
 

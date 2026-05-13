@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/services/auth-service";
 
@@ -23,6 +24,10 @@ const featureCards = [
 export default async function Home() {
   const currentUser = await getCurrentUser();
 
+  if (currentUser) {
+    redirect("/dashboard");
+  }
+
   return (
     <section className="flex flex-1 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.18),_transparent_32%),radial-gradient(circle_at_right,_rgba(14,165,233,0.14),_transparent_28%),linear-gradient(180deg,_rgba(248,250,252,0.88),_rgba(226,232,240,0.95))]">
       <div className="flex w-full flex-1 px-4 py-10 sm:px-6 sm:py-14 lg:px-10 lg:py-16 xl:px-16">
@@ -30,7 +35,7 @@ export default async function Home() {
           <div className="space-y-10">
             <div className="space-y-5">
               <div className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm">
-                {currentUser ? `Welcome back, ${currentUser.name}` : "Simple match planning for your squad"}
+                Simple match planning for your squad
               </div>
               <div className="max-w-4xl space-y-4">
                 <h1 className="text-5xl font-bold tracking-tight text-slate-950 md:text-6xl lg:text-7xl">
@@ -59,26 +64,20 @@ export default async function Home() {
               ))}
             </div>
 
-            {currentUser ? (
-              <div className="rounded-3xl border border-emerald-200 bg-emerald-50/80 p-5 text-sm leading-7 text-emerald-950 shadow-[0_20px_60px_rgba(16,185,129,0.08)]">
-                Welcome, {currentUser.email}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4 pt-2 sm:flex-row">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 font-semibold text-white transition hover:bg-slate-800"
-                >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white/90 px-6 py-3 font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-white"
-                >
-                  Register
-                </Link>
-              </div>
-            )}
+            <div className="flex flex-col gap-4 pt-2 sm:flex-row">
+              <Link
+                href="/login"
+                className="inline-flex items-center justify-center rounded-2xl bg-slate-950 px-6 py-3 font-semibold text-white transition hover:bg-slate-800"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white/90 px-6 py-3 font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-white"
+              >
+                Register
+              </Link>
+            </div>
           </div>
         </div>
       </div>

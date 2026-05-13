@@ -5,12 +5,14 @@ import { getCurrentUser } from "@/services/auth-service";
 
 export default async function Header() {
   const currentUser = await getCurrentUser();
+  const homeHref = currentUser ? "/dashboard" : "/";
+  const homeLabel = currentUser ? "Dashboard" : "Home";
 
   return (
     <header className="border-b border-white/10 bg-slate-950/90 text-white shadow-[0_10px_30px_rgba(15,23,42,0.18)] backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <Link
-          href="/"
+          href={homeHref}
           className="flex items-center gap-2 text-xl font-bold tracking-tight text-white transition hover:text-emerald-200 md:text-2xl"
         >
           <span className="rounded-full bg-white/10 px-2 py-1 text-sm">⚽</span>
@@ -18,8 +20,8 @@ export default async function Header() {
         </Link>
 
         <div className="flex items-center gap-3 text-sm font-medium">
-          <Link href="/" className="rounded-full px-3 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white">
-            Home
+          <Link href={homeHref} className="rounded-full px-3 py-2 text-slate-200 transition hover:bg-white/10 hover:text-white">
+            {homeLabel}
           </Link>
 
           {currentUser ? (
