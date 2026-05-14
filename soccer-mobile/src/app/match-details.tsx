@@ -1,11 +1,15 @@
-import { Link } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function MatchDetailsScreen() {
+  const { matchId } = useLocalSearchParams<{ matchId?: string }>();
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Match Details</Text>
-      <Text style={styles.description}>This screen will show the selected match information.</Text>
+      <Text style={styles.description}>
+        {matchId ? `This screen will show match ${matchId}.` : 'This screen will show the selected match information.'}
+      </Text>
 
       <Link href="/matches" asChild>
         <Pressable style={styles.linkButton}>
