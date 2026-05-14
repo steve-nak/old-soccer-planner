@@ -85,6 +85,28 @@ async function getUserByEmail(email: string) {
   return rows[0] ?? null;
 }
 
+export async function getUserById(userId: number): Promise<AuthUser | null> {
+  try {
+    const rows = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        photoUrl: users.photoUrl,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    const user = rows[0];
+
+    return user ? toAuthUser(user) : null;
+  } catch (error) {
+    logAuthDatabaseError("getUserById: user lookup failed", error);
+    return null;
+  }
+}
+
 export async function registerUser(input: {
   name: string;
   email: string;
@@ -214,21 +236,5 @@ export const getCurrentUser = cache(async (): Promise<AuthUser | null> => {
     return null;
   }
 
-  try {
-    const rows = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        name: users.name,
-        photoUrl: users.photoUrl,
-      })
-      .from(users)
-      .where(eq(users.id, Number(payload.sub)))
-      .limit(1);
-
-    return rows[0] ?? null;
-  } catch (error) {
-    logAuthDatabaseError("getCurrentUser: user lookup failed", error);
-    return null;
-  }
+  return getUserById(Number(payload.sub));
 });

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Soccer Planner API</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f8fb;
+        --panel: #ffffff;
+        --ink: #10233f;
+        --muted: #5d6b82;
+        --accent: #1862f2;
+        --border: #d7e0ee;
+      }
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #edf3ff 0%, var(--bg) 180px, var(--bg) 100%);
+        color: var(--ink);
+      }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+      .hero {
+        display: grid;
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.4rem);
+        line-height: 1.05;
+      }
+      p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 18px 20px;
+        box-shadow: 0 12px 30px rgba(16, 35, 63, 0.06);
+      }
+      .endpoint {
+        display: grid;
+        gap: 10px;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .method {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 72px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e7f0ff;
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        font-size: 0.85rem;
+      }
+      code {
+        background: #eef3fb;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 2px 8px;
+        font-size: 0.95em;
+      }
+      pre {
+        overflow: auto;
+        background: #0e1b31;
+        color: #e8f0ff;
+        border-radius: 16px;
+        padding: 16px;
+        margin: 0;
+        white-space: pre-wrap;
+      }
+      .two-col {
+        display: grid;
+        gap: 16px;
+      }
+      @media (min-width: 900px) {
+        .two-col {
+          grid-template-columns: 1.15fr 0.85fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <h1>Soccer Planner API</h1>
+        <p>JWT-protected REST endpoints for mobile clients. Send the token in <code>Authorization: Bearer &lt;jwt&gt;</code>.</p>
+      </section>
+
+      <div class="two-col">
+        <section class="grid">
+          <article class="card endpoint">
+            <div class="row"><span class="method">POST</span><strong>/api/auth/login</strong></div>
+            <p>Body: <code>{"email":"user@example.com","password":"secret"}</code></p>
+            <p>Returns: <code>{"token":"...","user":{...}}</code></p>
+          </article>
+
+          <article class="card endpoint">
+            <div class="row"><span class="method">GET</span><strong>/api/matches?page=1&pageSize=10</strong></div>
+            <p>Lists active matches that are still open for joining. Requires JWT auth.</p>
+          </article>
+
+          <article class="card endpoint">
+            <div class="row"><span class="method">GET</span><strong>/api/matches/[id]</strong></div>
+            <p>Returns match details, joined players, and comments.</p>
+          </article>
+
+          <article class="card endpoint">
+            <div class="row"><span class="method">POST</span><strong>/api/matches/[id]/join</strong></div>
+            <p>Joins the current user to the match if there is room.</p>
+          </article>
+
+          <article class="card endpoint">
+            <div class="row"><span class="method">POST</span><strong>/api/matches/[id]/leave</strong></div>
+            <p>Removes the current user from the match.</p>
+          </article>
+
+          <article class="card endpoint">
+            <div class="row"><span class="method">POST</span><strong>/api/matches/[id]/slots</strong></div>
+            <p>Body: <code>{"extraSlots": 0}</code> or a larger integer to reserve additional slots.</p>
+          </article>
+        </section>
+
+        <section class="card">
+          <h2 style="margin:0 0 12px;font-size:1.1rem;">Typical success response</h2>
+          <pre>{
+  "page": 1,
+  "pageSize": 10,
+  "totalItems": 2,
+  "totalPages": 1,
+  "items": [
+    {
+      "id": 12,
+      "location": "The School",
+      "capacity": 12,
+      "playersJoined": 8,
+      "state": {
+        "active": true,
+        "timing": "upcoming",
+        "capacity": "under capacity"
+      }
+    }
+  ]
+}</pre>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

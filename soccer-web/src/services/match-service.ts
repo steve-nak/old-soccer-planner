@@ -1,5 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db, matches, matchJoins, groups, groupMembers, users, matchComments } from "@/db";
+import { getMatchCapacityState, getMatchTimingState, isMatchActive } from "@/lib/match-status";
 
 export type MatchDetail = {
   id: number;
@@ -52,6 +53,95 @@ export type DashboardMatch = MatchDetail & {
     extraSlots: number;
   }>;
 };
+
+export type ActiveMatchSummary = MatchDetail & {
+  group: {
+    id: number;
+    title: string;
+    description: string | null;
+  };
+  totalPlayers: number;
+  joinedPlayers: number;
+  availableSlots: number;
+  timingState: ReturnType<typeof getMatchTimingState>;
+  capacityState: ReturnType<typeof getMatchCapacityState>;
+};
+
+export type ActiveMatchPage = {
+  items: ActiveMatchSummary[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+};
+
+function getTotalPlayers(joins: Array<{ extraSlots: number }>) {
+  return joins.reduce((accumulator, join) => accumulator + 1 + join.extraSlots, 0);
+}
+
+function toActiveMatchSummary(match: DashboardMatch): ActiveMatchSummary {
+  const totalPlayers = getTotalPlayers(match.joins);
+
+  return {
+    ...match,
+    totalPlayers,
+    joinedPlayers: match.joins.length,
+    availableSlots: Math.max(0, match.capacity - totalPlayers),
+    timingState: getMatchTimingState(match.startsAt),
+    capacityState: getMatchCapacityState(totalPlayers, match.capacity),
+  };
+}
+
+export async function getActiveMatchesPage(page: number, pageSize: number): Promise<ActiveMatchPage> {
+  try {
+    const normalizedPage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const normalizedPageSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.floor(pageSize) : 10;
+
+    const matchesWithJoins = await db.query.matches.findMany({
+      with: {
+        group: {
+          columns: {
+            id: true,
+            title: true,
+            description: true,
+          },
+        },
+        joins: {
+          columns: {
+            extraSlots: true,
+          },
+        },
+      },
+    });
+
+    const openMatches = matchesWithJoins
+      .filter((match) => isMatchActive(match) && getTotalPlayers(match.joins) < match.capacity)
+      .map(toActiveMatchSummary)
+      .sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime() || left.id - right.id);
+
+    const totalItems = openMatches.length;
+    const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / normalizedPageSize);
+    const startIndex = (normalizedPage - 1) * normalizedPageSize;
+
+    return {
+      items: openMatches.slice(startIndex, startIndex + normalizedPageSize),
+      page: normalizedPage,
+      pageSize: normalizedPageSize,
+      totalItems,
+      totalPages,
+    };
+  } catch (error) {
+    console.error("[match-service] getActiveMatchesPage failed", error);
+
+    return {
+      items: [],
+      page: 1,
+      pageSize: 10,
+      totalItems: 0,
+      totalPages: 0,
+    };
+  }
+}
 
 export async function getMatchById(matchId: number): Promise<MatchWithDetails | null> {
   try {
