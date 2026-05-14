@@ -13,16 +13,16 @@ function RootLayoutNav() {
     if (isLoading) return;
 
     const currentRootSegment = segments[0];
-    const isPublicRoute =
-      currentRootSegment === undefined ||
-      currentRootSegment === 'index' ||
-      currentRootSegment === 'login';
+    const isLoginRoute = currentRootSegment === 'login';
 
-    if (!isSignedIn && !isPublicRoute) {
-      // Allow only Home and Login when signed out.
+    if (!isSignedIn && !isLoginRoute) {
       router.replace('/login');
     }
-  }, [isSignedIn, segments, isLoading]);
+
+    if (isSignedIn && isLoginRoute) {
+      router.replace('/');
+    }
+  }, [isSignedIn, segments, isLoading, router]);
 
   if (isLoading) {
     return (

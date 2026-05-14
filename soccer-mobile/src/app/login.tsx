@@ -6,11 +6,12 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -38,14 +39,17 @@ export default function LoginScreen() {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await login(email, password);
-      // Navigation will be handled automatically by the router based on auth state
+      await login(email.trim(), password);
       router.replace('/');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred during login';
       setGeneralError(errorMessage);
       console.error('Login error:', errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -67,9 +71,11 @@ export default function LoginScreen() {
             placeholder="you@example.com"
             value={email}
             onChangeText={setEmail}
-            editable={!isLoading}
+            editable={!isSubmitting}
             autoCapitalize="none"
+            autoCorrect={false}
             keyboardType="email-address"
+            textContentType="username"
             error={errors.email}
           />
 
@@ -78,18 +84,19 @@ export default function LoginScreen() {
             placeholder="Enter your password"
             value={password}
             onChangeText={setPassword}
-            editable={!isLoading}
+            editable={!isSubmitting}
             secureTextEntry
+            textContentType="password"
             error={errors.password}
           />
         </View>
 
         <Pressable
-          style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+          style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
           onPress={handleLogin}
-          disabled={isLoading}
+          disabled={isSubmitting}
         >
-          {isLoading ? (
+          {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <Text style={styles.loginButtonText}>Sign In</Text>
