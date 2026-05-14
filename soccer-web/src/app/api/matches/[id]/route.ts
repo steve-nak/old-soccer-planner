@@ -37,7 +37,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   return createJsonResponse({
     id: match.id,
     group: match.group,
-    date: match.startsAt,
+    date: match.startsAt.toISOString(),
+    startsAt: match.startsAt.toISOString(),
+    starts_at: match.startsAt.toISOString(),
     location: match.location,
     state: {
       active: isMatchActive(match),

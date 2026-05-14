@@ -121,10 +121,17 @@ export function MatchInfo({ match }: MatchInfoProps) {
         </div>
       </div>
 
-      {/* Comments */}
-      {match.comments.length > 0 && (
-        <div className="space-y-4">
+      <div className="space-y-4">
+        <div>
           <h2 className="text-lg font-semibold text-slate-900">Comments ({match.comments.length})</h2>
+          <p className="text-sm text-slate-600">Match notes and updates from the group.</p>
+        </div>
+
+        {match.comments.length === 0 ? (
+          <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-center text-sm text-slate-600">
+            No comments yet
+          </p>
+        ) : (
           <div className="space-y-3">
             {match.comments.map((comment) => (
               <div key={comment.id} className="rounded-lg border border-slate-200 bg-white p-4">
@@ -147,8 +154,8 @@ export function MatchInfo({ match }: MatchInfoProps) {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

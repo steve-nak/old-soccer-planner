@@ -44,7 +44,7 @@ export default async function MatchPage({ params }: MatchPageProps) {
         <div className="mx-auto max-w-3xl">
           <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
             <h1 className="text-lg font-semibold text-red-900">Match Not Found</h1>
-            <p className="mt-2 text-sm text-red-700">The match you're looking for doesn't exist.</p>
+            <p className="mt-2 text-sm text-red-700">The requested match does not exist.</p>
             <Link
               href="/dashboard"
               className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700"
@@ -97,6 +97,8 @@ export default async function MatchPage({ params }: MatchPageProps) {
   const isActive = isMatchActive(match);
   const isJoined = await isUserJoinedMatch(currentUser.id, matchId);
   const userJoin = match.joins.find((join) => join.userId === currentUser.id);
+  const totalPlayers = match.joins.reduce((accumulator, join) => accumulator + 1 + join.extraSlots, 0);
+  const remainingSlots = Math.max(0, match.capacity - totalPlayers);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -128,6 +130,7 @@ export default async function MatchPage({ params }: MatchPageProps) {
                 isActive={isActive}
                 matchState={timingState}
                 isCanceled={match.isCanceled}
+                remainingSlots={remainingSlots}
               />
             </div>
           </div>
