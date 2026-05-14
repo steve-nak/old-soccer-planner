@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 
 import { getActiveMatchesPage } from "@/services/match-service";
-import { createErrorResponse, createJsonResponse, parsePositiveInteger, requireApiUser } from "@/lib/api";
+import { createErrorResponse, createJsonResponse, handleCorsPreFlight, parsePositiveInteger, requireApiUser } from "@/lib/api";
+
+export async function OPTIONS() {
+  return handleCorsPreFlight();
+}
 
 export async function GET(request: NextRequest) {
   const auth = await requireApiUser(request);

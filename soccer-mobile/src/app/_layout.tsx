@@ -1,24 +1,65 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+function RootLayoutNav() {
+  const { isSignedIn, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    if (isLoading) return;
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+    const currentRootSegment = segments[0];
+    const isPublicRoute =
+      currentRootSegment === undefined ||
+      currentRootSegment === 'index' ||
+      currentRootSegment === 'login';
+
+    if (!isSignedIn && !isPublicRoute) {
+      // Allow only Home and Login when signed out.
+      router.replace('/login');
+    }
+  }, [isSignedIn, segments, isLoading]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#0EA5E9" />
+      </View>
+    );
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <>
+      <Stack
+        screenOptions={{
+          headerTitleAlign: 'center',
+          contentStyle: { backgroundColor: '#F5F8FC' },
+        }}>
+        {isSignedIn ? (
+          <>
+            <Stack.Screen name="index" options={{ title: 'Home' }} />
+            <Stack.Screen name="matches" options={{ title: 'Matches' }} />
+            <Stack.Screen name="match-details" options={{ title: 'Match Details' }} />
+          </>
+        ) : (
+          <>
+            <Stack.Screen name="login" options={{ headerShown: false }} />
+          </>
+        )}
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <StatusBar style="dark" />
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }

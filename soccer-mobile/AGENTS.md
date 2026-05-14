@@ -9,3 +9,6 @@
 
 # Mobile User Interface
   - Implement user-friendly UI design, with stack navigation, with **responsive layout** for tablets and smartphones.
+
+#	Mobile UI Alerts
+  - Ensure all native alerts, confirms and other system dialogs have a reliable fallback for Web (implemented as modal popups)

@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 
 import { loginUser } from "@/services/auth-service";
-import { createErrorResponse, createJsonResponse } from "@/lib/api";
+import { createErrorResponse, createJsonResponse, handleCorsPreFlight } from "@/lib/api";
+
+export async function OPTIONS() {
+  return handleCorsPreFlight();
+}
 
 export async function POST(request: NextRequest) {
   let body: { email?: string; password?: string };

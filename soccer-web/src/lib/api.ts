@@ -3,12 +3,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserById, type AuthUser } from "@/services/auth-service";
 import { verifyJwt } from "@/lib/auth";
 
+// CORS configuration
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Max-Age": "86400",
+};
+
+export function addCorsHeaders(response: NextResponse): NextResponse {
+  Object.entries(CORS_HEADERS).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+  return response;
+}
+
+export function handleCorsPreFlight(): NextResponse {
+  return addCorsHeaders(new NextResponse(null, { status: 204 }));
+}
+
 export function createJsonResponse<T>(body: T, init?: ResponseInit) {
-  return NextResponse.json(body, init);
+  const response = NextResponse.json(body, init);
+  return addCorsHeaders(response);
 }
 
 export function createErrorResponse(message: string, status = 400, details?: string) {
-  return NextResponse.json(
+  const response = NextResponse.json(
     {
       error: {
         message,
@@ -17,6 +37,7 @@ export function createErrorResponse(message: string, status = 400, details?: str
     },
     { status },
   );
+  return addCorsHeaders(response);
 }
 
 export async function requireApiUser(request: NextRequest): Promise<{ user: AuthUser } | { response: NextResponse }> {

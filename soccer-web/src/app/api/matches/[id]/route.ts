@@ -1,12 +1,16 @@
 import { NextRequest } from "next/server";
 
 import { getMatchById } from "@/services/match-service";
-import { createErrorResponse, createJsonResponse, requireApiUser } from "@/lib/api";
+import { createErrorResponse, createJsonResponse, handleCorsPreFlight, requireApiUser } from "@/lib/api";
 import { getMatchCapacityState, getMatchTimingState, isMatchActive } from "@/lib/match-status";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
+
+export async function OPTIONS() {
+  return handleCorsPreFlight();
+}
 
 export async function GET(request: NextRequest, context: RouteContext) {
   const auth = await requireApiUser(request);
