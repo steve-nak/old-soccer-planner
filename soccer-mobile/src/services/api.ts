@@ -1,6 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = String(process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000/api').replace(/\/$/, '');
+const LOCAL_API_BASE_URL = 'http://localhost:3000/api';
+const configuredApiBaseUrl =
+  process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ||
+  process.env.API_BASE_URL?.trim();
+const isProduction = process.env.NODE_ENV === 'production';
+const resolvedApiBaseUrl = configuredApiBaseUrl || (isProduction ? '' : LOCAL_API_BASE_URL);
+
+if (!resolvedApiBaseUrl) {
+  throw new Error('Missing API base URL. Set EXPO_PUBLIC_API_BASE_URL for production builds.');
+}
+
+const API_BASE_URL = resolvedApiBaseUrl.replace(/\/$/, '');
 export const AUTH_TOKEN_STORAGE_KEY = 'authToken';
 export const AUTH_USER_STORAGE_KEY = 'authUser';
 
