@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       // Provide a user-friendly error message
       if (error instanceof TypeError) {
-        throw new Error('Unable to connect to the API server. Please check that the backend is running at http://localhost:3000.');
+        throw new Error('Unable to connect to the API server. Please check your API base URL configuration.');
       }
       
       throw error;
