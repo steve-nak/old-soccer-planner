@@ -2,17 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LOCAL_API_BASE_URL = 'http://localhost:3000/api';
 const expoPublicApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-const legacyApiBaseUrl = process.env.API_BASE_URL?.trim();
-const configuredApiBaseUrl = expoPublicApiBaseUrl || legacyApiBaseUrl;
 const isProduction = process.env.NODE_ENV === 'production';
-let resolvedApiBaseUrl = configuredApiBaseUrl;
+let resolvedApiBaseUrl = expoPublicApiBaseUrl;
 
 if (!resolvedApiBaseUrl && !isProduction) {
   resolvedApiBaseUrl = LOCAL_API_BASE_URL;
-}
-
-if (!expoPublicApiBaseUrl && legacyApiBaseUrl) {
-  console.warn('API_BASE_URL is deprecated. Please use EXPO_PUBLIC_API_BASE_URL.');
 }
 
 if (!resolvedApiBaseUrl) {
