@@ -1,9 +1,11 @@
 import { getMatchById, joinMatch, leaveMatch, MatchComment, MatchItem, updateReserveSlots } from '@/services/matches';
+import { useAuth } from '@/context/AuthContext';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function MatchDetailsScreen() {
+  const { user } = useAuth();
   const { matchId } = useLocalSearchParams<{ matchId?: string }>();
   const resolvedMatchId = Array.isArray(matchId) ? matchId[0] : matchId;
   const [match, setMatch] = useState<MatchItem | null>(null);
@@ -12,17 +14,26 @@ export default function MatchDetailsScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const joinedPlayers = match?.joinedPlayers ?? match?.players?.length ?? 0;
+  const currentUserJoin = useMemo(() => {
+    if (!user?.id || !match?.joins) {
+      return null;
+    }
+
+    return match.joins.find((join) => String(join.userId ?? join.user?.id) === String(user.id)) ?? null;
+  }, [match?.joins, user?.id]);
+
+  const joinedPlayers = match?.joinedPlayers ?? match?.playersJoined ?? match?.players?.length ?? 0;
   const maxPlayers = match?.maxPlayers ?? null;
   const reserveLimit = useMemo(() => {
     if (!maxPlayers) {
       return 9;
     }
 
-    return Math.max(maxPlayers - joinedPlayers, 0);
-  }, [joinedPlayers, maxPlayers]);
+    const currentExtraSlots = currentUserJoin?.extraSlots ?? 0;
+    return Math.max(maxPlayers - joinedPlayers + currentExtraSlots, 0);
+  }, [currentUserJoin?.extraSlots, joinedPlayers, maxPlayers]);
 
-  const isJoined = !!match?.userJoined;
+  const isJoined = !!match?.userJoined || !!currentUserJoin;
   const displayTitle = match?.title || `${match?.homeTeam || 'Home'} vs ${match?.awayTeam || 'Away'}`;
   const displayDate = formatDate(match?.startsAt || match?.startTime);
   const displayLocation = match?.venue || match?.location || 'Location not available';
@@ -50,24 +61,26 @@ export default function MatchDetailsScreen() {
       }
 
       setMatch(response);
-      setReserveSlots(response.reserveSlots ?? response.reservedSlots ?? 0);
+      const userJoin = response.joins?.find((join) => String(join.userId ?? join.user?.id) === String(user?.id));
+      setReserveSlots(userJoin?.extraSlots ?? response.reserveSlots ?? response.reservedSlots ?? 0);
       setErrorMessage(null);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to load match details.');
     } finally {
       setIsLoading(false);
     }
-  }, [resolvedMatchId]);
+  }, [resolvedMatchId, user?.id]);
 
   useEffect(() => {
     loadMatch();
   }, [loadMatch]);
 
   const applyMatchUpdate = useCallback((updatedMatch: MatchItem) => {
+    const userJoin = updatedMatch.joins?.find((join) => String(join.userId ?? join.user?.id) === String(user?.id));
     setMatch(updatedMatch);
-    setReserveSlots(updatedMatch.reserveSlots ?? updatedMatch.reservedSlots ?? 0);
+    setReserveSlots(userJoin?.extraSlots ?? updatedMatch.reserveSlots ?? updatedMatch.reservedSlots ?? 0);
     setErrorMessage(null);
-  }, []);
+  }, [user?.id]);
 
   const handleJoin = useCallback(async () => {
     if (!resolvedMatchId) {

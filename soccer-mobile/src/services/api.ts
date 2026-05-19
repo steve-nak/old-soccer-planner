@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || process.env.API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = String(process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:3000/api').replace(/\/$/, '');
 export const AUTH_TOKEN_STORAGE_KEY = 'authToken';
 export const AUTH_USER_STORAGE_KEY = 'authUser';
 

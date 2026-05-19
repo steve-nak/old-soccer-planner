@@ -6,15 +6,10 @@
     "orientation": "portrait",
     "scheme": "soccermobile",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "extra": {
-      "apiBaseUrl": process.env.API_BASE_URL || "http://localhost:3000/api"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {

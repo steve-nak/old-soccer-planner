@@ -14,13 +14,16 @@ export interface MatchItem {
   location?: string;
   score?: string;
   joinedPlayers?: number;
+  playersJoined?: number;
   maxPlayers?: number;
+  capacity?: number;
   comments?: MatchComment[];
   commentCount?: number;
   matchState?: string;
   userJoined?: boolean;
   reserveSlots?: number;
   reservedSlots?: number;
+  joins?: MatchJoin[];
   players?: {
     id?: string;
     name?: string;
@@ -29,11 +32,24 @@ export interface MatchItem {
   }[];
 }
 
+export interface MatchJoin {
+  userId?: string | number;
+  extraSlots?: number;
+  joinedAt?: string;
+  user?: {
+    id?: string | number;
+    name?: string;
+    email?: string;
+  };
+}
+
 export interface MatchActionResponse {
   match?: MatchItem;
   data?: MatchItem;
   item?: MatchItem;
   result?: MatchItem;
+  success?: boolean;
+  extraSlots?: number;
 }
 
 export interface MatchPageResponse {
@@ -94,11 +110,30 @@ function normalizeMatchItem(response: MatchItem | MatchActionResponse | null | u
     return null;
   }
 
-  if ('id' in response) {
-    return response as MatchItem;
+  const match = 'id' in response
+    ? response as MatchItem
+    : response.match || response.data || response.item || response.result || null;
+
+  if (!match) {
+    return null;
   }
 
-  return response.match || response.data || response.item || response.result || null;
+  const joins = match.joins ?? [];
+  const players = match.players ?? joins.map((join) => ({
+    id: join.user?.id ? String(join.user.id) : join.userId ? String(join.userId) : undefined,
+    name: join.user?.name,
+    email: join.user?.email,
+    isReserve: false,
+  }));
+
+  return {
+    ...match,
+    id: String(match.id),
+    startsAt: match.startsAt ?? (match as MatchItem & { date?: string }).date,
+    maxPlayers: match.maxPlayers ?? match.capacity,
+    joinedPlayers: match.joinedPlayers ?? match.playersJoined,
+    players,
+  };
 }
 
 function toBooleanHasMore(response: MatchPageResponse | MatchItem[] | null | undefined, items: MatchItem[], pageSize: number) {
@@ -216,20 +251,24 @@ export async function getMatchById(matchId: string): Promise<MatchItem | null> {
 export async function joinMatch(matchId: string, reserveSlots = 0): Promise<MatchItem> {
   const endpoints = [
     { endpoint: `/matches/${matchId}/join`, method: 'POST' },
-    { endpoint: `/match/${matchId}/join`, method: 'POST' },
-    { endpoint: `/matches/${matchId}`, method: 'PATCH' },
   ];
 
   for (const candidate of endpoints) {
-    const response = await requestMatchItem(candidate.endpoint, {
+    await requestMatchItem(candidate.endpoint, {
       method: candidate.method,
-      body: JSON.stringify({ reserveSlots }),
+      body: JSON.stringify({ extraSlots: reserveSlots }),
     });
 
-    const match = normalizeMatchActionResponse(response);
+    if (reserveSlots > 0) {
+      await updateReserveSlots(matchId, reserveSlots);
+    }
+
+    const match = await getMatchById(matchId);
     if (match) {
       return match;
     }
+
+    throw new Error('Unable to load match details after joining.');
   }
 
   throw new Error('Unable to join this match.');
@@ -238,20 +277,19 @@ export async function joinMatch(matchId: string, reserveSlots = 0): Promise<Matc
 export async function leaveMatch(matchId: string): Promise<MatchItem> {
   const endpoints = [
     { endpoint: `/matches/${matchId}/leave`, method: 'POST' },
-    { endpoint: `/match/${matchId}/leave`, method: 'POST' },
-    { endpoint: `/matches/${matchId}`, method: 'PATCH' },
   ];
 
   for (const candidate of endpoints) {
-    const response = await requestMatchItem(candidate.endpoint, {
+    await requestMatchItem(candidate.endpoint, {
       method: candidate.method,
-      body: JSON.stringify({ action: 'leave' }),
     });
 
-    const match = normalizeMatchActionResponse(response);
+    const match = await getMatchById(matchId);
     if (match) {
       return match;
     }
+
+    throw new Error('Unable to load match details after leaving.');
   }
 
   throw new Error('Unable to leave this match.');
@@ -259,18 +297,16 @@ export async function leaveMatch(matchId: string): Promise<MatchItem> {
 
 export async function updateReserveSlots(matchId: string, reserveSlots: number): Promise<MatchItem> {
   const endpoints = [
-    { endpoint: `/matches/${matchId}/reserve`, method: 'PATCH' },
-    { endpoint: `/matches/${matchId}/reserve-slots`, method: 'PATCH' },
-    { endpoint: `/match/${matchId}/reserve`, method: 'PATCH' },
+    { endpoint: `/matches/${matchId}/slots`, method: 'POST' },
   ];
 
   for (const candidate of endpoints) {
-    const response = await requestMatchItem(candidate.endpoint, {
+    await requestMatchItem(candidate.endpoint, {
       method: candidate.method,
-      body: JSON.stringify({ reserveSlots }),
+      body: JSON.stringify({ extraSlots: reserveSlots }),
     });
 
-    const match = normalizeMatchActionResponse(response);
+    const match = await getMatchById(matchId);
     if (match) {
       return match;
     }
