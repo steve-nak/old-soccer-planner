@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { MatchWithDetails } from "@/services/match-service";
 import { formatDistanceToNow, format } from "date-fns";
 import { AlertCircle, Calendar, MapPin, ShieldAlert, Users } from "lucide-react";
@@ -99,10 +100,12 @@ export function MatchInfo({ match }: MatchInfoProps) {
               <div key={join.userId} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4">
                 <div className="flex items-center gap-3">
                   {join.user.photoUrl && (
-                    <img
+                    <Image
                       src={join.user.photoUrl}
                       alt={join.user.name}
-                      className="h-10 w-10 rounded-full object-cover"
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
                     />
                   )}
                   <div>
@@ -138,10 +141,12 @@ export function MatchInfo({ match }: MatchInfoProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {comment.user.photoUrl && (
-                      <img
+                      <Image
                         src={comment.user.photoUrl}
                         alt={comment.user.name}
-                        className="h-8 w-8 rounded-full object-cover"
+                        width={32}
+                        height={32}
+                        className="rounded-full object-cover"
                       />
                     )}
                     <div className="font-medium text-slate-900">{comment.user.name}</div>

@@ -10,6 +10,14 @@ if (!databaseUrl) {
 
 const sql = neon(databaseUrl);
 
+interface QueryResult {
+  id: string;
+}
+
+function extractId(result: QueryResult[] | { rows: QueryResult[] }): string {
+  return Array.isArray(result) ? result[0].id : result.rows[0].id;
+}
+
 function addDays(date: Date, days: number) {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
@@ -38,17 +46,17 @@ async function main() {
       `INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
       [email, passwordHash, name]
     );
-    const uid = Array.isArray(res) ? res[0].id : (res as any).rows[0].id;
+    const uid = extractId(res as QueryResult[] | { rows: QueryResult[] });
     usersMap.set(email, uid);
   }
   console.log(`✓ ${emails.length} users inserted.`);
 
   const ensureGroup = async (title: string, description: string) => {
     const sel = await sql.query(`SELECT id FROM groups WHERE title = $1 LIMIT 1`, [title]);
-    const selId = Array.isArray(sel) ? (sel[0] && sel[0].id) : (sel as any).rows[0]?.id;
+    const selId = extractId(sel as QueryResult[] | { rows: QueryResult[] });
     if (selId) return selId;
     const ins = await sql.query(`INSERT INTO groups (title, description) VALUES ($1, $2) RETURNING id`, [title, description]);
-    return Array.isArray(ins) ? ins[0].id : (ins as any).rows[0].id;
+    return extractId(ins as QueryResult[] | { rows: QueryResult[] });
   };
 
   const sofiaId = await ensureGroup("Sofia Derby", "Local Sofia derby players");
@@ -92,9 +100,9 @@ async function main() {
   const m2 = await sql.query(`INSERT INTO matches (group_id, starts_at, location, capacity) VALUES ($1, $2, $3, $4) RETURNING id`, [sofiaId, addDays(now, 5).toISOString(), "Students Town", 12]);
   const m3 = await sql.query(`INSERT INTO matches (group_id, starts_at, location, capacity) VALUES ($1, $2, $3, $4) RETURNING id`, [sundayId, addDays(now, 6).toISOString(), "Arena 111", 10]);
 
-  const mid1 = Array.isArray(m1) ? m1[0].id : (m1 as any).rows[0].id;
-  const mid2 = Array.isArray(m2) ? m2[0].id : (m2 as any).rows[0].id;
-  const mid3 = Array.isArray(m3) ? m3[0].id : (m3 as any).rows[0].id;
+  const mid1 = extractId(m1 as QueryResult[] | { rows: QueryResult[] });
+  const mid2 = extractId(m2 as QueryResult[] | { rows: QueryResult[] });
+  const mid3 = extractId(m3 as QueryResult[] | { rows: QueryResult[] });
 
   const matches = [mid1, mid2, mid3];
   console.log(`✓ ${matches.length} matches inserted.`);
@@ -124,7 +132,7 @@ async function main() {
       matchJoinsCount++;
     }
     const commenters = selected.slice(0, Math.min(3, selected.length));
-    for (const [ci, email] of commenters.entries()) {
+    for (const email of commenters) {
       const template = commentTemplates[Math.floor(Math.random() * commentTemplates.length)];
       const text = `${template} - ${email.split("@")[0]}`;
       await sql.query(`INSERT INTO match_comments (match_id, user_id, text) VALUES ($1, $2, $3)`, [matchId, usersMap.get(email), text]);
