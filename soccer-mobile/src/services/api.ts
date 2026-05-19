@@ -5,7 +5,11 @@ const expoPublicApiBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 const legacyApiBaseUrl = process.env.API_BASE_URL?.trim();
 const configuredApiBaseUrl = expoPublicApiBaseUrl || legacyApiBaseUrl;
 const isProduction = process.env.NODE_ENV === 'production';
-const resolvedApiBaseUrl = configuredApiBaseUrl || (isProduction ? undefined : LOCAL_API_BASE_URL);
+let resolvedApiBaseUrl = configuredApiBaseUrl;
+
+if (!resolvedApiBaseUrl && !isProduction) {
+  resolvedApiBaseUrl = LOCAL_API_BASE_URL;
+}
 
 if (!expoPublicApiBaseUrl && legacyApiBaseUrl) {
   console.warn('API_BASE_URL is deprecated. Please use EXPO_PUBLIC_API_BASE_URL.');
