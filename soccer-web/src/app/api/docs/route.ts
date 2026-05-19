@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { addCorsHeaders, handleCorsPreFlight } from "@/lib/api";
 
@@ -9,7 +10,7 @@ export async function OPTIONS() {
 }
 
 export async function GET() {
-  const html = await readFile(new URL("./api-docs.html", import.meta.url), "utf8");
+  const html = readFileSync(path.join(process.cwd(), "src/app/api/docs/api-docs.html"), "utf8");
 
   const response = new NextResponse(html, {
     headers: {
